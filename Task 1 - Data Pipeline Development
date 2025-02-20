@@ -1,0 +1,50 @@
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder,StandardScaler,FunctionTransformer,PolynomialFeatures
+from sklearn.compose import ColumnTransformer
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.model_selection import train_test_split
+
+def numerical_trasnform(df):
+    '''
+    INPUT:
+    df - (DataFrame) pandas dataframe 
+    
+    OUTPUT:
+    num_attr : numerical attributes
+    num_pipeline: numerical pipeline object
+    Description:
+    Using Scikit learn to impute NaN values, and standadize     
+    '''
+    nums = ['float64','int64']
+    
+    num_attr = df.select_dtypes(include = nums)
+    
+    num_pipeline = Pipeline([
+        #('impute',SimpleImputer(fill_value=0.01, strategy='constant')),
+        ('log',FunctionTransformer(np.log)),
+        ('std_scaler', StandardScaler()),
+        ('poly',PolynomialFeatures(2,interaction_only=False,include_bias = False))
+        
+    ])
+    
+    return num_attr,num_pipeline
+  
+  def full_data_pipeline(df):
+    """
+    INPUT:
+    df - (DataFrame) pandas dataframe 
+    
+    OUTPUT:
+    full_data_pipeline : final prepared data pipeline to feed into the ML model
+    Description:
+    full data transformation pipeline for both numerical and categorical data
+    """
+    cat_attr = ["gender"]
+    
+    num_attr,num_pipeline = numerical_trasnform(df)
+    full_data_pipeline = ColumnTransformer([
+        ('num',num_pipeline,list(num_attr)),
+        ('cat',OneHotEncoder(),cat_attr),
+        ])
+    return full_data_pipeline
